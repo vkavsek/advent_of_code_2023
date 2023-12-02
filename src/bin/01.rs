@@ -3,6 +3,9 @@ use std::collections::BTreeMap;
 advent_of_code::solution!(1);
 
 pub fn part_one(input: &str) -> Option<u32> {
+    if input.is_empty() {
+        return None;
+    }
     let res: u32 = input
         .lines()
         .map(|line| {
@@ -21,14 +24,21 @@ pub fn part_one(input: &str) -> Option<u32> {
             res_num
         })
         .sum();
+
     Some(res)
 }
 pub fn part_two(input: &str) -> Option<u32> {
-    let res: u32 = input.lines().map(extract_nums).sum();
+    if input.is_empty() {
+        return None;
+    }
+    let res: u32 = input.lines().filter_map(extract_nums).sum();
     Some(res)
 }
 
-fn extract_nums(input: &str) -> u32 {
+fn extract_nums(input: &str) -> Option<u32> {
+    if input.is_empty() {
+        return None;
+    }
     let nums_hash = BTreeMap::from([
         ("one", "1"),
         ("two", "2"),
@@ -65,7 +75,7 @@ fn extract_nums(input: &str) -> u32 {
         res_val += last;
     }
 
-    res_val
+    Some(res_val)
 }
 
 #[cfg(test)]
