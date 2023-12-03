@@ -47,8 +47,8 @@ pub fn part_one(input: &str) -> Option<u32> {
                 number.push_num(ch);
 
                 if !number.is_part {
-                    let lower_y = if y_id > 0 { y_id - 1 } else { y_id };
-                    let lower_x = if x_id > 0 { x_id - 1 } else { x_id };
+                    let lower_x = x_id.saturating_sub(1);
+                    let lower_y = y_id.saturating_sub(1);
                     let upper_y = if y_id < rows - 1 { y_id + 1 } else { y_id };
                     let upper_x = if x_id < columns - 1 { x_id + 1 } else { x_id };
 
@@ -100,8 +100,8 @@ pub fn part_two(input: &str) -> Option<u32> {
                 number.push_num(ch);
 
                 if !number.is_part {
-                    let lower_y = if y_id > 0 { y_id - 1 } else { y_id };
-                    let lower_x = if x_id > 0 { x_id - 1 } else { x_id };
+                    let lower_x = x_id.saturating_sub(1);
+                    let lower_y = y_id.saturating_sub(1);
                     let upper_y = if y_id < rows - 1 { y_id + 1 } else { y_id };
                     let upper_x = if x_id < columns - 1 { x_id + 1 } else { x_id };
 
