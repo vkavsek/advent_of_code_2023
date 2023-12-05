@@ -1,19 +1,22 @@
-use std::{
-    cell::RefCell,
-    collections::{BTreeMap, BTreeSet},
-    rc::Rc,
-};
+use std::collections::{BTreeMap, BTreeSet};
 
 use itertools::Itertools;
 
 advent_of_code::solution!(5);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct DataMap {
-    mappings: Rc<RefCell<BTreeMap<u32, u32>>>,
+    mappings: BTreeMap<u32, u32>,
+}
+impl DataMap {
+    fn fill_datamap(&mut self, fill_to: usize) {
+        for i in 0..=fill_to {
+            self.mappings.entry(i as u32).or_insert(i as u32);
+        }
+    }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Almanach {
     data_maps: Vec<DataMap>,
 }
@@ -22,13 +25,13 @@ impl Almanach {
     fn init() -> Almanach {
         Almanach {
             data_maps: vec![DataMap {
-                mappings: Rc::new(RefCell::new(BTreeMap::new())),
+                mappings: BTreeMap::new(),
             }],
         }
     }
     fn push_new_dm(&mut self) {
         self.data_maps.push(DataMap {
-            mappings: Rc::new(RefCell::new(BTreeMap::new())),
+            mappings: BTreeMap::new(),
         });
     }
 
@@ -37,37 +40,29 @@ impl Almanach {
     /// Insertion is infallible, if the key already exists the value
     /// is updated and Some(key) is returned.
     fn insert_into_dm(&mut self, key_src: u32, value_dest: u32) -> Option<u32> {
-        let mut dm = self.data_maps.last()?.mappings.borrow_mut();
-        dm.entry(key_src).or_insert(value_dest);
+        self.data_maps
+            .last_mut()?
+            .mappings
+            .entry(key_src)
+            .or_insert(value_dest);
         Some(key_src)
-    }
-
-    fn fill_next_dm(&self, dm_id: usize, fill_to: usize) {
-        if let Some(next_dm) = self.data_maps.get(dm_id) {
-            for i in 0..=fill_to {
-                next_dm
-                    .mappings
-                    .borrow_mut()
-                    .entry(i as u32)
-                    .or_insert(i as u32);
-            }
-        }
     }
 
     /// Returns None if it can't find a KEY_SRC entry in any of the DataMaps.
     fn find_final_elem(&mut self, n: u32) -> Option<u32> {
         let mut key_src = n;
-        for (i, data_map) in self.data_maps.iter().enumerate() {
-            if i < self.data_maps.len() - 1 {
-                let dest = data_map
-                    .mappings
-                    .borrow()
-                    .get(&key_src)
-                    .unwrap_or(&key_src)
-                    .to_owned();
-                self.fill_next_dm(i + 1, dest as usize);
-                key_src = dest;
+        let mut data_iter = self.data_maps.iter_mut().peekable();
+        while let Some(data_map) = data_iter.next() {
+            let dest = data_map
+                .mappings
+                .get(&key_src)
+                .unwrap_or(&key_src)
+                .to_owned();
+            if let Some(next_data_map) = data_iter.peek_mut() {
+                next_data_map.fill_datamap(dest as usize);
             }
+
+            key_src = dest;
         }
         Some(key_src)
     }
