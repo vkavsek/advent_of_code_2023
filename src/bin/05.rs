@@ -2,6 +2,7 @@ use std::collections::BTreeSet;
 
 use itertools::Itertools;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use tracing::info;
 
 advent_of_code::solution!(5);
 
@@ -30,6 +31,12 @@ fn parse_to_u32(input: &str) -> u32 {
         .expect("Number should be parsable to u32")
 }
 
+fn parse_to_u64(input: &str) -> u64 {
+    input
+        .parse::<u64>()
+        .expect("Number should be parsable to u32")
+}
+
 fn chunkify(input: &str) -> Vec<DataChunk<'_>> {
     let lines_len = input.lines().count();
 
@@ -55,12 +62,12 @@ fn chunkify(input: &str) -> Vec<DataChunk<'_>> {
 
 // TODO: Make multithreaded
 fn proccess_seed(seed: &u32, chunks: &Vec<DataChunk>) -> u32 {
-    let mut num_op = *seed;
+    let mut num_op = *seed as u64;
     for chunk in chunks {
         for &line in chunk.iter() {
             let (dest, src, len) = line
                 .split_whitespace()
-                .map(parse_to_u32)
+                .map(parse_to_u64)
                 .collect_tuple()
                 .expect("There should be 3 numbers on a line!");
             if num_op >= src && num_op < src + len {
@@ -69,7 +76,7 @@ fn proccess_seed(seed: &u32, chunks: &Vec<DataChunk>) -> u32 {
             }
         }
     }
-    num_op
+    num_op as u32
 }
 
 fn proccess_seeds(seed_map: Vec<u32>, chunks: &Vec<DataChunk>) -> BTreeSet<u32> {
@@ -96,6 +103,7 @@ fn proccess_seeds(seed_map: Vec<u32>, chunks: &Vec<DataChunk>) -> BTreeSet<u32> 
         })
         .collect::<BTreeSet<_>>()
 }
+
 pub fn part_one(input: &str) -> Option<u32> {
     let seed_map: Vec<u32> = input
         .lines()
@@ -109,11 +117,13 @@ pub fn part_one(input: &str) -> Option<u32> {
     let chunks = chunkify(input);
 
     let res_map = proccess_seeds(seed_map, &chunks);
-
     res_map.first().copied()
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
+    tracing_subscriber::fmt().with_target(false).init();
+
+    info!("ENTERED part_two");
     let seed_map = input
         .lines()
         .take(1)
@@ -126,17 +136,18 @@ pub fn part_two(input: &str) -> Option<u32> {
         })
         .collect_vec();
 
-    println!("Collected seed map - LEN: {}", seed_map.len());
+    info!("Collected seed map - LEN: {}", seed_map.len());
     let chunks = chunkify(input);
-    println!("Chunkified - LEN: {}", chunks.len());
+    info!("Chunkified - LEN: {}", chunks.len());
 
     let res_map = seed_map
         .par_iter()
         .map(|seed| proccess_seed(seed, &chunks))
         .collect::<BTreeSet<_>>();
-    println!("Seeds processed");
+    info!("Seeds processed");
+    info!("{:?}", res_map.first());
 
-    res_map.first().copied()
+    res_map.first().map(|n| n.to_owned())
 }
 
 #[cfg(test)]
