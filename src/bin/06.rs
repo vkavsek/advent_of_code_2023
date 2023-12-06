@@ -1,4 +1,3 @@
-use indicatif::ProgressIterator;
 use itertools::Itertools;
 
 advent_of_code::solution!(6);
@@ -48,7 +47,7 @@ pub fn part_two(input: &str) -> Option<u64> {
     );
 
     let mut acc = 0;
-    for time_held in (0..time).progress_count(time / 4) {
+    for time_held in 0..time {
         let time_left = time - time_held;
         if time_held * time_left < record {
             acc += 1;
