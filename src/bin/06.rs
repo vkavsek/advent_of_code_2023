@@ -5,6 +5,7 @@ advent_of_code::solution!(6);
 fn parse_to_u64(input: &str) -> u64 {
     input.parse().expect("number should be parsable")
 }
+
 pub fn part_one(input: &str) -> Option<u64> {
     let (times, records) = input.split_once('\n').expect("not valid input");
     let op = times
@@ -37,8 +38,7 @@ pub fn part_two(input: &str) -> Option<u64> {
             .flat_map(|t| t.chars())
             .collect::<String>(),
     );
-
-    let record = parse_to_u64(
+    let record = 1 + parse_to_u64(
         &records
             .trim_start_matches("Distance:")
             .split_whitespace()
@@ -46,17 +46,25 @@ pub fn part_two(input: &str) -> Option<u64> {
             .collect::<String>(),
     );
 
-    let mut acc = 0;
-    for time_held in 0..time {
-        let time_left = time - time_held;
-        if time_held * time_left < record {
-            acc += 1;
-        } else {
-            break;
-        }
-    }
+    // NOTE: naive solution
+    //
+    // let mut acc = 0;
+    // for time_held in 0..time {
+    //     let time_left = time - time_held;
+    //     if time_held * time_left < record {
+    //         acc += 1;
+    //     } else {
+    //         break;
+    //     }
+    // }
+    // Some(time + 1 - 2 * acc)
 
-    Some(time + 1 - 2 * acc)
+    // Quadratic formula solution
+    //      https://en.wikipedia.org/wiki/Quadratic_formula
+    let x1 = ((time as f64 + ((time.pow(2) - 4 * record) as f64).sqrt()) / 2.0).floor() as u64;
+    let x2 = ((time as f64 - ((time.pow(2) - 4 * record) as f64).sqrt()) / 2.0).ceil() as u64;
+
+    Some(x1 - x2 + 1)
 }
 
 #[cfg(test)]
