@@ -79,23 +79,6 @@ fn proccess_seeds(seed_map: Vec<u64>, chunks: &Vec<DataChunk>) -> BTreeSet<u64> 
         .collect::<BTreeSet<_>>()
 }
 
-pub fn part_one(input: &str) -> Option<u32> {
-    let seed_map: Vec<u64> = input
-        .lines()
-        .take(1)
-        .flat_map(|line| {
-            let (_, nums) = line.split_once(": ").expect("Should be splitable by ': '");
-            nums.split_whitespace().map(parse_to_u64)
-        })
-        .collect_vec();
-
-    let chunks = chunkify(input);
-    info!(?chunks);
-
-    let res_map = proccess_seeds(seed_map, &chunks);
-    res_map.first().map(|n| n.to_owned() as u32)
-}
-
 fn find_seed(chunks: &Vec<DataChunk>, seed_map: &[Range<u64>]) -> Option<u32> {
     let n = (0u64..u64::MAX).progress_count(u64::MAX).find(|n| {
         let mut num_op = *n;
@@ -123,6 +106,28 @@ fn find_seed(chunks: &Vec<DataChunk>, seed_map: &[Range<u64>]) -> Option<u32> {
     n.map(|n| n as u32)
 }
 
+// In part one we have 'small' amount of data in SEEDS so it makes sense to iterate through each SEED.
+// Doing it in reverse takes a lot longer since we have a smaller pool to match to.
+pub fn part_one(input: &str) -> Option<u32> {
+    let seed_map: Vec<u64> = input
+        .lines()
+        .take(1)
+        .flat_map(|line| {
+            let (_, nums) = line.split_once(": ").expect("Should be splitable by ': '");
+            nums.split_whitespace().map(parse_to_u64)
+        })
+        .collect_vec();
+
+    let chunks = chunkify(input);
+    info!(?chunks);
+
+    let res_map = proccess_seeds(seed_map, &chunks);
+    res_map.first().map(|n| n.to_owned() as u32)
+}
+
+// In part two we have enormous ranges of data in SEEDS so instead of processing each SEED it makes
+// sense to BRUTEFORCE in reverse and look for matches (even more so because of the huge ranges,
+// there is a big chance we will hit a match early).
 pub fn part_two(input: &str) -> Option<u32> {
     tracing_subscriber::fmt().with_target(false).init();
 
