@@ -1,8 +1,7 @@
-use std::{cell::RefCell, collections::BTreeSet, ops::Range, rc::Rc};
+use std::{collections::BTreeSet, ops::Range};
 
-use indicatif::ParallelProgressIterator;
+use indicatif::ProgressIterator;
 use itertools::Itertools;
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use tracing::info;
 
 advent_of_code::solution!(5);
@@ -61,19 +60,6 @@ fn chunkify(input: &str) -> Vec<DataChunk> {
         .0
 }
 
-fn proccess_seed(seed: &u64, chunks: &Vec<DataChunk>) -> u64 {
-    let mut num_op = *seed;
-    for chunk in chunks {
-        let valid_map = chunk
-            .iter()
-            .find(|(src_range, _dest_range)| src_range.contains(&num_op));
-        if let Some((src_range, dest_range)) = valid_map {
-            num_op = dest_range.start + num_op - src_range.start;
-        }
-    }
-    num_op
-}
-
 fn proccess_seeds(seed_map: Vec<u64>, chunks: &Vec<DataChunk>) -> BTreeSet<u64> {
     seed_map
         .iter()
@@ -110,12 +96,37 @@ pub fn part_one(input: &str) -> Option<u32> {
     res_map.first().map(|n| n.to_owned() as u32)
 }
 
+fn find_seed(chunks: &Vec<DataChunk>, seed_map: &[Range<u64>]) -> Option<u32> {
+    let n = (0u64..u64::MAX).progress_count(u64::MAX).find(|n| {
+        let mut num_op = *n;
+        let mut found = false;
+        for (idx, chunk) in chunks.iter().rev().enumerate() {
+            if let Some((src_range, dest_range)) = chunk
+                .iter()
+                .find(|(_, dest_range)| dest_range.contains(&num_op))
+            {
+                num_op = num_op - dest_range.start + src_range.start;
+            }
+            let seed_map_check = seed_map
+                .iter()
+                .any(|seed_range| seed_range.contains(&num_op));
+            // if idx == chunks.len() - 1 && seed_map_check {
+            //     return Some(n as u32);
+            // }
+            if idx == chunks.len() - 1 && seed_map_check {
+                found = true;
+                info!("FOUND a match: {n}");
+            }
+        }
+        found
+    });
+    n.map(|n| n as u32)
+}
+
 pub fn part_two(input: &str) -> Option<u32> {
     tracing_subscriber::fmt().with_target(false).init();
 
     info!("ENTERED part_two");
-    let count = Rc::new(RefCell::new(0));
-
     let seed_map = input
         .lines()
         .take(1)
@@ -124,27 +135,14 @@ pub fn part_two(input: &str) -> Option<u32> {
             nums.split_whitespace()
                 .map(parse_to_u64)
                 .tuples::<(_, _)>()
-                .map(|(seed_num, len)| {
-                    let mut c = count.borrow_mut();
-                    *c = len;
-                    seed_num..seed_num + len
-                })
+                .map(|(seed_num, len)| seed_num..seed_num + len)
         })
         .collect_vec();
     info!("Collected seed map - LEN: {}", seed_map.len());
 
     let chunks = chunkify(input);
     info!("Chunkified - LEN: {}", chunks.len());
-
-    let res = seed_map
-        .par_iter()
-        .progress_count(*count.borrow())
-        .flat_map(|range| range.clone())
-        .map(|seed| proccess_seed(&seed, &chunks))
-        .min();
-    info!("Seeds processed");
-
-    res.map(|n| n as u32)
+    find_seed(&chunks, &seed_map)
 }
 
 #[cfg(test)]
@@ -160,6 +158,9 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
+        // let result_improved =
+        //     part_two_improved(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some(46));
+        // assert_eq!(result, result_improved);
     }
 }
