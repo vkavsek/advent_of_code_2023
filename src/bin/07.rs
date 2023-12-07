@@ -26,13 +26,13 @@ fn parse_to_u32(n: &str) -> u32 {
 }
 
 fn card_val(card: &char) -> u32 {
-    match *card {
+    match card {
         c if c.is_ascii_digit() => c.to_digit(10).unwrap() - 1,
-        'T' => 9,
-        'J' => 10,
-        'Q' => 11,
-        'K' => 12,
-        'A' => 13,
+        &'T' => 9,
+        &'J' => 10,
+        &'Q' => 11,
+        &'K' => 12,
+        &'A' => 13,
         _ => panic!("should never happen!"),
     }
 }
@@ -80,7 +80,7 @@ pub fn part_one(input: &str) -> Option<u32> {
     Some(res)
 }
 
-fn card_val_2(card: char) -> u32 {
+fn card_val_two(card: char) -> u32 {
     match card {
         c if c.is_ascii_digit() => c.to_digit(10).unwrap(),
         'J' => 1,
@@ -92,7 +92,7 @@ fn card_val_2(card: char) -> u32 {
     }
 }
 
-fn get_rank_strength_2(cards: &str) -> (u8, u32) {
+fn get_rank_strength_two(cards: &str) -> (u8, u32) {
     let mut acc = FxHashMap::default();
     let mut strength = 0;
     let mut j = 0;
@@ -102,7 +102,7 @@ fn get_rank_strength_2(cards: &str) -> (u8, u32) {
         } else {
             acc.entry(card).and_modify(|val| *val += 1).or_insert(1u32);
         }
-        strength += card_val_2(card) * (5u32.pow((i as u32 + 1) * 2));
+        strength += card_val_two(card) * (5u32.pow((i as u32 + 1) * 2));
     }
 
     if let Some(highest) = acc.values_mut().max() {
@@ -110,9 +110,8 @@ fn get_rank_strength_2(cards: &str) -> (u8, u32) {
     }
 
     let rank = match acc.len() {
-        1 => 6,
+        1 | 0 => 6,
         4 => 1,
-        0 => 6,
         5 => 0,
         2 if acc.values().contains(&4) => 5,
         2 => 4,
@@ -130,7 +129,7 @@ pub fn part_two(input: &str) -> Option<u32> {
         .map(|line| {
             let split = line.split_once(' ').expect("a valid parse");
             let (cards, bid) = (split.0, parse_to_u32(split.1));
-            let (rank, strength) = get_rank_strength_2(cards);
+            let (rank, strength) = get_rank_strength_two(cards);
             Hand::new(rank, strength, bid)
         })
         .collect_vec();
