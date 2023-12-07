@@ -47,22 +47,12 @@ fn get_rank_strength(cards: &str) -> (u8, usize) {
 
     let rank = match acc.len() {
         1 => 6,
-        2 => {
-            if acc.values().contains(&4) {
-                5
-            } else {
-                4
-            }
-        }
-        3 => {
-            if acc.values().contains(&3) {
-                3
-            } else {
-                2
-            }
-        }
-
+        2 if acc.values().contains(&4) => 5,
+        2 => 4,
+        3 if acc.values().contains(&3) => 3,
+        3 => 2,
         4 => 1,
+        0 => 6,
         _ => 0,
     };
 
@@ -121,21 +111,10 @@ fn get_rank_strength_2(cards: &str) -> (u8, usize) {
 
     let rank = match acc.len() {
         1 => 6,
-        2 => {
-            if acc.values().contains(&4) {
-                5
-            } else {
-                4
-            }
-        }
-        3 => {
-            if acc.values().contains(&3) {
-                3
-            } else {
-                2
-            }
-        }
-
+        2 if acc.values().contains(&4) => 5,
+        2 => 4,
+        3 if acc.values().contains(&3) => 3,
+        3 => 2,
         4 => 1,
         0 => 6,
         _ => 0,
