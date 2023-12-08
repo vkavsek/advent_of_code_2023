@@ -60,13 +60,13 @@ fn get_rank_strength(cards: &str) -> (u8, u32) {
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
-    let mut hands: Hands = input
+    let mut hands = input
         .lines()
         .map(|line| {
             let split = line.split_once(' ').expect("a valid parse");
             let (cards, bid) = (split.0, parse_to_u32(split.1));
             let (rank, strength) = get_rank_strength(cards);
-            Hand::new(rank, strength, bid)
+            (Hand::new(rank, strength, bid), cards)
         })
         .collect_vec();
     hands.sort_unstable();
@@ -74,7 +74,7 @@ pub fn part_one(input: &str) -> Option<u32> {
     let res = hands
         .into_iter()
         .enumerate()
-        .map(|(i, hand)| hand.bid * (i as u32 + 1))
+        .map(|(i, (hand, _))| hand.bid * (i as u32 + 1))
         .sum();
 
     Some(res)
