@@ -40,6 +40,7 @@ fn solve_one(line: &[i64]) -> i64 {
     }
     result.iter().sum()
 }
+
 fn solve_two(line: &[i64]) -> i64 {
     let last = line.len() - 1;
     let mut n_iters = 1;
